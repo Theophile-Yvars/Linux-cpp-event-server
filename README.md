@@ -1,6 +1,6 @@
 # Linux-cpp-event-server
 
-## Shéma 
+## Schéma 
 
                 ┌─────────────┐
                 │ Thread I/O  │

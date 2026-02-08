@@ -17,7 +17,7 @@ add_library(eventserver
     src/monitoring/CPUMonitorThread.cpp
 )
 
-target_include_directories(eventserver PRIVATE
+target_include_directories(eventserver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
