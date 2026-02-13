@@ -1,12 +1,12 @@
 #include "monitoring/CPUMonitorThread.hpp"
-#include <thread>
-#include <iostream>
 #include <fstream>
-#include "CPUData.hpp"
+#include <iostream>
 #include <sstream>
-#include "queue/ThreadSafeQueue.hpp"
+#include <chrono>
+#include "monitoring/CPUData.hpp"
 
-CPUMonitorThread::CPUMonitorThread() : running(false) {}
+CPUMonitorThread::CPUMonitorThread(ThreadSafeQueue<Event>& queue)
+    : m_threadSafeQueue(queue), running(false) {}
 
 CPUMonitorThread::~CPUMonitorThread() {
     stop();
@@ -14,21 +14,25 @@ CPUMonitorThread::~CPUMonitorThread() {
 
 void CPUMonitorThread::start() {
     running = true;
-    std::thread(&CPUMonitorThread::monitorLoop, this).detach();
+    m_thread = std::thread(&CPUMonitorThread::monitorLoop, this);
 }
 
 void CPUMonitorThread::stop() {
     running = false;
+    if (m_thread.joinable())
+        m_thread.join();
 }
 
 void CPUMonitorThread::monitorLoop() {
     CPUData data;
 
     while (running) {
+
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::fstream statFile("/proc/stat", std::ios_base::in);
-        if(!statFile.is_open()) {
-            std::cerr << "Failed to open /proc/stat" << std::endl;
+
+        std::ifstream statFile("/proc/stat");
+        if (!statFile.is_open()) {
+            std::cerr << "Failed to open /proc/stat\n";
             continue;
         }
 
@@ -56,8 +60,13 @@ void CPUMonitorThread::monitorLoop() {
         float usage = (data.total() - data.idleTime()) * 100.0 / data.total();
         std::cout << "CPU Usage: " << usage << "%" << std::endl;
 
-        if(usage > 80.0) {
+        if(usage > 0.23) {
             std::cout << "Warning: High CPU usage detected!" << std::endl;
+            m_threadSafeQueue.push(Event{
+                EventType::CPU_OVERLOAD,
+                usage,
+                std::chrono::system_clock::now()
+            });
         }
         
         statFile.close();

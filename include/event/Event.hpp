@@ -4,7 +4,7 @@
 
 struct Event {
     EventType type;
-    int value;
+    float value;
     std::chrono::system_clock::time_point timestamp;
 };
  

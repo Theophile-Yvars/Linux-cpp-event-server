@@ -2,5 +2,6 @@
 
 enum EventType {
     CPU_OVERLOAD,
-    UNKNOWN
+    UNKNOWN,
+    SHUTDOWN
 };
