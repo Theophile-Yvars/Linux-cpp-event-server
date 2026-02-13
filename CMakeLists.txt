@@ -15,9 +15,11 @@ endif()
 # Code principal
 add_library(eventserver
     src/monitoring/CPUMonitorThread.cpp
+    src/engine/RuleEngine.cpp
+    src/worker/Worker.cpp
 )
 
-target_include_directories(eventserver PRIVATE
+target_include_directories(eventserver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
