@@ -10,8 +10,11 @@ public:
     void start();
     void stop();
 private:
-    void _epollLoop();
-    ThreadSafeQueue<Event>& _queue;
     bool _running;
     std::thread _thread;
+    int _epollFd;
+    int _serverFd;
+    ThreadSafeQueue<Event>& _queue;
+
+    void _epollLoop();
 };

@@ -34,6 +34,19 @@
    └───────────────┘           └───────────────┘           └───────────────┘
 ```
 
+```
+Producer GO1  \
+Producer GO2   \
+Producer GO3    → UNIX Socket (/tmp/engine.sock)
+Producer GO4   /
+                   ↓
+               EpollLoopThread
+                   ↓
+            ThreadSafeQueue<Event>
+                   ↓
+                  Worker
+```
+
 ---
 
 ## Execution Flow

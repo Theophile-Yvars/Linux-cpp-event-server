@@ -1,31 +1,74 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include "monitoring/CPUMonitorThread.hpp"
+#include <vector>
+#include <memory>
+
+#include "network/EpollLoopThread.hpp"
 #include "queue/ThreadSafeQueue.hpp"
 #include "worker/Worker.hpp"
+#include "mock/EventProduction.hpp"
+#include "event/Event.hpp"
+#include "event/EventType.hpp"
+#include "monitoring/CPUMonitorThread.hpp"
+#include "mock/IProducer.hpp"
 
 using namespace std;
 
-int main( int argc, char* argv[]) {
-    cout << "Hello, World!" << endl;
-    
-    ThreadSafeQueue<Event> queue;
-    CPUMonitorThread monitor(queue);
-    Worker worker(queue);
+int main(int argc, char* argv[])
+{
+    cout << "=== Engine Starting ===" << endl;
 
-    monitor.start();
-    worker.start();
+    ThreadSafeQueue<Event> queue;
+
+    // 🔹 Moteur réseau
+    EpollLoopThread epollLoop(queue);
+
+    // 🔹 3 Workers
+    vector<unique_ptr<Worker>> workers;
+    for (int i = 0; i < 3; i++) {
+        workers.push_back(make_unique<Worker>(queue));
+    }
+
+    // 🔹 4 Producers
+    vector<unique_ptr<IProducer>> producers;
+    producers.push_back(make_unique<EventProduction>(EventType::GO1));
+    producers.push_back(make_unique<EventProduction>(EventType::GO2));
+    producers.push_back(make_unique<EventProduction>(EventType::GO3));
+    producers.push_back(make_unique<EventProduction>(EventType::GO4));
+    producers.push_back(std::make_unique<CPUMonitorThread>(queue, EventType::CPU_OVERLOAD));
+
+    // 🔥 Start order
+    epollLoop.start();
+
+    for (auto& worker : workers)
+        worker->start();
+
+    for (auto& producer : producers)
+        producer->start();
 
     std::this_thread::sleep_for(std::chrono::seconds(10));
 
-    monitor.stop();    
-    queue.push(Event{
-        EventType::SHUTDOWN,
-        0,
-        std::chrono::system_clock::now()
-    });
-    worker.stop();
+    cout << "=== Stopping Producers ===" << endl;
+    for (auto& producer : producers)
+        producer->stop();
+
+    cout << "=== Stopping Epoll Loop ===" << endl;
+    epollLoop.stop();
+
+    // 🔥 Envoyer 3 SHUTDOWN (un par worker)
+    for (int i = 0; i < 3; i++) {
+        queue.push(Event{
+            EventType::SHUTDOWN,
+            0,
+            std::chrono::system_clock::now()
+        });
+    }
+
+    for (auto& worker : workers)
+        worker->stop();
+
+    cout << "=== Engine Stopped Cleanly ===" << endl;
 
     return EXIT_SUCCESS;
 }

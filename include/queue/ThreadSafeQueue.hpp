@@ -17,7 +17,7 @@ public:
             queue_.push(item);
         }
         cond_var_.notify_one();
-        std::cout<<"PUSH : "<< std::endl;
+        //std::cout<<"PUSH : "<< std::endl;
     }
 
     T pop() {
@@ -29,7 +29,7 @@ public:
 
         T item = queue_.front();
         queue_.pop();
-        std::cout<<"POP : "<< std::endl;
+        //std::cout<<"POP : "<< std::endl;
         return item;
     }
 

@@ -8,6 +8,7 @@
 #include <cstring>
 #include <chrono>
 #include <cstdlib>
+#include <random>
 
 EventProduction::EventProduction(EventType eventType) : _running(false), _eventType(eventType) {
 }
@@ -40,6 +41,11 @@ void EventProduction::produceEvent() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
+    // Déclare ceci dans ta méthode produceEvent(), avant la boucle while(_running)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(10, 500); // millisecondes
+
     while (_running) {
         // 1. Préparer l'événement
         Event e{
@@ -58,7 +64,8 @@ void EventProduction::produceEvent() {
         if (send(sock, &header, sizeof(header), 0) < 0) break;
         if (send(sock, &e, sizeof(e), 0) < 0) break;
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        int waitMs = dis(gen);
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitMs));
     }
     
     if (sock != -1) {

@@ -1,12 +1,15 @@
-#include "monitoring/CPUMonitorThread.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <chrono>
 #include "monitoring/CPUData.hpp"
+#include "monitoring/CPUMonitorThread.hpp"
+#include "event/Event.hpp"
+#include "event/EventType.hpp"
+#include "queue/ThreadSafeQueue.hpp"
 
-CPUMonitorThread::CPUMonitorThread(ThreadSafeQueue<Event>& queue)
-    : m_threadSafeQueue(queue), running(false) {}
+CPUMonitorThread::CPUMonitorThread(ThreadSafeQueue<Event>& queue, EventType eventType)
+    : m_threadSafeQueue(queue), running(false), m_eventType(eventType) {}
 
 CPUMonitorThread::~CPUMonitorThread() {
     stop();
@@ -58,12 +61,12 @@ void CPUMonitorThread::monitorLoop() {
         }
 
         float usage = (data.total() - data.idleTime()) * 100.0 / data.total();
-        std::cout << "CPU Usage: " << usage << "%" << std::endl;
+        //std::cout << "CPU Usage: " << usage << "%" << std::endl;
 
-        if(usage > 0.23) {
-            std::cout << "Warning: High CPU usage detected!" << std::endl;
+        if(usage > 0.15) {
+            //std::cout << "Warning: High CPU usage detected!" << std::endl;
             m_threadSafeQueue.push(Event{
-                EventType::CPU_OVERLOAD,
+                m_eventType,
                 usage,
                 std::chrono::system_clock::now()
             });

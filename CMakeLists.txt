@@ -12,20 +12,19 @@ if(ENABLE_COVERAGE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 endif()
 
-# Code principal
 add_library(eventserver
     src/monitoring/CPUMonitorThread.cpp
     src/engine/RuleEngine.cpp
     src/worker/Worker.cpp
+    src/network/EpollLoopThread.cpp
+    src/mock/EventProduction.cpp
 )
 
 target_include_directories(eventserver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# Tests
 add_subdirectory(tests)
 
-# Exécutable principal de l’application
 add_executable(EventServerMain src/main.cpp)
 target_link_libraries(EventServerMain eventserver)

@@ -1,13 +1,14 @@
 #pragma once
 #include <thread>
-#include "EventType.hpp"
+#include "event/EventType.hpp"
+#include "IProducer.hpp"
 
-class EventProduction {
+class EventProduction : public IProducer {
 public:
     EventProduction(EventType eventType);
     ~EventProduction();
-    void start();
-    void stop();
+    void start() override;
+    void stop() override;
 private:
     void produceEvent();
     bool _running;
