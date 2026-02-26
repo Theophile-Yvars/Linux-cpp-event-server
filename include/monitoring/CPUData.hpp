@@ -16,7 +16,6 @@ struct CPUData {
         return idle + iowait;
     }
 
-    // Print all raw CPU counters
     void print() const {
         std::cout << "CPU Data: "
                   << "user=" << user << " "

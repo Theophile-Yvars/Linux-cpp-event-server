@@ -73,10 +73,10 @@ while (running)
 
 ## Points Clés Architecture
 
-- ✔️ Queue thread-safe (mutex + condition_variable)
-- ✔️ Worker pool scalable
-- ✔️ Traitement parallèle
-- ✔️ Séparation I/O / Processing
-- ✔️ Extensible (nouvelles règles, nouvelles actions)
+- Queue thread-safe (mutex + condition_variable)
+- Worker pool scalable
+- Traitement parallèle
+- Séparation I/O / Processing
+- Extensible (nouvelles règles, nouvelles actions)
 
 ---

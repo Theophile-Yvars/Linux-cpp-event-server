@@ -46,25 +46,25 @@ void EpollLoopThread::_epollLoop()
     // Supprimer ancien socket si existe
     unlink(SOCKET_PATH);
 
-    // 1️⃣ epoll
+    // epoll
     _epollFd = epoll_create1(0);
     if (_epollFd == -1) {
         perror("epoll_create1");
         return;
     }
 
-    // 2️⃣ socket UNIX
+    // socket UNIX
     _serverFd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (_serverFd == -1) {
         perror("socket");
         return;
     }
 
-    // 3️⃣ Non bloquant
+    // Non bloquant
     int flags = fcntl(_serverFd, F_GETFL, 0);
     fcntl(_serverFd, F_SETFL, flags | O_NONBLOCK);
 
-    // 4️⃣ Bind
+    //Bind
     sockaddr_un addr{};
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
@@ -74,13 +74,13 @@ void EpollLoopThread::_epollLoop()
         return;
     }
 
-    // 5️⃣ Listen
+    // Listen
     if (listen(_serverFd, SOMAXCONN) < 0) {
         perror("listen");
         return;
     }
 
-    // 6️⃣ Ajouter à epoll
+    // Ajouter à epoll
     epoll_event event{};
     event.events = EPOLLIN;
     event.data.fd = _serverFd;
@@ -103,7 +103,7 @@ void EpollLoopThread::_epollLoop()
         {
             int fd = events[i].data.fd;
 
-            // 🟢 Nouvelle connexion
+            // Nouvelle connexion
             if (fd == _serverFd)
             {
                 while (true)
@@ -129,10 +129,10 @@ void EpollLoopThread::_epollLoop()
                 }
             }
 
-            // 🔵 Données client
+            // Données client
             else
             {
-                // 1️⃣ Lire header
+                //Lire header
                 MessageHeader header;
                 ssize_t bytes = recv(fd, &header, sizeof(header), 0);
 
@@ -144,7 +144,7 @@ void EpollLoopThread::_epollLoop()
                     continue;
                 }
 
-                // 2️⃣ Lire payload
+                // Lire payload
                 if (header.size != sizeof(Event))
                 {
                     std::cerr << "Invalid event size\n";
@@ -162,7 +162,7 @@ void EpollLoopThread::_epollLoop()
                     continue;
                 }
 
-                // 3️⃣ Push vers queue
+                // Push vers queue
                 _queue.push(event);
             }
         }

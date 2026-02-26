@@ -36,31 +36,24 @@ void EventProduction::produceEvent() {
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, "/tmp/engine.sock", sizeof(addr.sun_path)-1);
 
-    // On attend que le moteur soit prêt
     while (_running && connect(sock, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    // Déclare ceci dans ta méthode produceEvent(), avant la boucle while(_running)
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(10, 500); // millisecondes
 
     while (_running) {
-        // 1. Préparer l'événement
         Event e{
             _eventType, 
             static_cast<uint32_t>(rand() % 100), 
             std::chrono::system_clock::now()
         };
 
-        // 2. Préparer le header
         MessageHeader header;
         header.size = sizeof(Event);
-
-        // 3. Envoi atomique (Header + Data)
-        // On peut faire deux send(), mais pour plus de fiabilité, 
-        // on peut aussi concaténer dans un petit buffer ou utiliser writev()
+        
         if (send(sock, &header, sizeof(header), 0) < 0) break;
         if (send(sock, &e, sizeof(e), 0) < 0) break;
 
