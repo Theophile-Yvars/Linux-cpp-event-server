@@ -20,14 +20,9 @@ void Worker::stop() {
 
 void Worker::workLoop() {
     while (true) {
-        // 🔹 Attente bloquante d’un événement
         Event event = m_queue.pop();
-
-        // 🔥 Condition d’arrêt propre
         if (event.type == EventType::SHUTDOWN)
             break;
-
-        // 🔹 Traitement normal
         m_engine.process(event);
     }
 }

@@ -21,16 +21,15 @@ int main(int argc, char* argv[])
 
     ThreadSafeQueue<Event> queue;
 
-    // 🔹 Moteur réseau
     EpollLoopThread epollLoop(queue);
 
-    // 🔹 3 Workers
+    // CONSUMERS
     vector<unique_ptr<Worker>> workers;
     for (int i = 0; i < 3; i++) {
         workers.push_back(make_unique<Worker>(queue));
     }
 
-    // 🔹 4 Producers
+    // PRODUCERS
     vector<unique_ptr<IProducer>> producers;
     producers.push_back(make_unique<EventProduction>(EventType::GO1));
     producers.push_back(make_unique<EventProduction>(EventType::GO2));
@@ -38,7 +37,6 @@ int main(int argc, char* argv[])
     producers.push_back(make_unique<EventProduction>(EventType::GO4));
     producers.push_back(std::make_unique<CPUMonitorThread>(queue, EventType::CPU_OVERLOAD));
 
-    // 🔥 Start order
     epollLoop.start();
 
     for (auto& worker : workers)
@@ -56,7 +54,6 @@ int main(int argc, char* argv[])
     cout << "=== Stopping Epoll Loop ===" << endl;
     epollLoop.stop();
 
-    // 🔥 Envoyer 3 SHUTDOWN (un par worker)
     for (int i = 0; i < 3; i++) {
         queue.push(Event{
             EventType::SHUTDOWN,

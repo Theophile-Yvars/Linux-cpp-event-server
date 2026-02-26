@@ -48,9 +48,8 @@ void CPUMonitorThread::monitorLoop() {
 
                 ss >> data.user >> data.nice >> data.system
                 >> data.idle >> data.iowait >> data.irq >> data.softirq
-                >> data.steal; // optional
+                >> data.steal; 
 
-                // Read extra fields if present
                 uint64_t guest = 0, guest_nice = 0;
                 ss >> guest >> guest_nice;
                 data.user += guest;
@@ -62,8 +61,7 @@ void CPUMonitorThread::monitorLoop() {
 
         float usage = (data.total() - data.idleTime()) * 100.0 / data.total();
         //std::cout << "CPU Usage: " << usage << "%" << std::endl;
-
-        if(usage > 0.15) {
+        if(usage > 0.15) { // valeur de test
             //std::cout << "Warning: High CPU usage detected!" << std::endl;
             m_threadSafeQueue.push(Event{
                 m_eventType,
